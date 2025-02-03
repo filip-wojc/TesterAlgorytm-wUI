@@ -80,3 +80,7 @@ button[type="submit"]:hover {
     color: #333;
     font-weight: bold;
 }
+
+#parameterC {
+    display: none;
+}

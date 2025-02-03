@@ -15,7 +15,39 @@ async function loadFitnessFunctions() {
     } catch (error) {
         alert(error.message);
     }
+
+
+    const algorithmSelect = document.getElementById('algorithmSelect')
+
+    try {
+        const response = await fetch('http://localhost:5236/api/algorithm/algorithms');
+        if (!response.ok) throw new Error("Nie udało się pobrać algorytmów.");
+
+        const functions = await response.json();
+        functions.forEach(func => {
+            const option = document.createElement('option');
+            option.value = func;
+            option.textContent = func;
+            algorithmSelect.appendChild(option);
+        });
+    } catch (error) {
+        alert(error.message);
+    }
 }
+
+
+document.getElementById("algorithmSelect").addEventListener("change", function () {
+    const selectedAlgorithm = this.value;
+    const parameterCDiv = document.getElementById("parameterC");
+
+    if (selectedAlgorithm === "Csa") {
+        parameterCDiv.style.display = "block";
+    } else {
+        parameterCDiv.style.display = "none";
+    }
+});
+
+
 
 document.getElementById('solveForm').addEventListener('submit', async function (event) {
     event.preventDefault();
@@ -28,6 +60,13 @@ document.getElementById('solveForm').addEventListener('submit', async function (
         alert("Wybierz funkcję celu.");
         return;
     }
+
+    const selectedAlgorithm = document.getElementById('algorithmSelect').value;
+    if (!selectedAlgorithm) {
+        alert("Wybierz algorytm.");
+        return;
+    }
+
 
     try {
         const paramsInfo = Array.from(document.querySelectorAll('.param')).map((paramDiv, index) => {
@@ -47,7 +86,7 @@ document.getElementById('solveForm').addEventListener('submit', async function (
             };
         });
 
-        const solveResponse = await fetch(`http://localhost:5236/api/algorithm/solve/${selectedFunction}`, {
+        const solveResponse = await fetch(`http://localhost:5236/api/algorithm/solve/${selectedFunction}/${selectedAlgorithm}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
