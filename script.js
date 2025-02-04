@@ -67,7 +67,6 @@ document.getElementById('solveForm').addEventListener('submit', async function (
         return;
     }
 
-
     try {
         const paramsInfo = Array.from(document.querySelectorAll('.param')).map((paramDiv, index) => {
             const lowerBoundary = parseFloat(paramDiv.querySelector(`input[name="LowerBoundary${index}"]`).value);
@@ -86,6 +85,7 @@ document.getElementById('solveForm').addEventListener('submit', async function (
             };
         });
 
+        // Wywołanie rozwiązania algorytmu
         const solveResponse = await fetch(`http://localhost:5236/api/algorithm/solve/${selectedFunction}/${selectedAlgorithm}`, {
             method: 'POST',
             headers: {
@@ -102,6 +102,7 @@ document.getElementById('solveForm').addEventListener('submit', async function (
         const solveResult = await solveResponse.json();
         const filePath = solveResult.filePath;
 
+        // Pobranie PDF
         const pdfResponse = await fetch(`http://localhost:5236/api/algorithm/pdf-report?path=${encodeURIComponent(filePath)}`, {
             method: 'GET',
         });
@@ -118,9 +119,26 @@ document.getElementById('solveForm').addEventListener('submit', async function (
         downloadLink.click();
 
         resultElement.innerText = "PDF został pobrany.";
+
+        // Pobranie raportu tekstowego
+        const txtResponse = await fetch(`http://localhost:5236/api/algorithm/text-report?path=${encodeURIComponent(filePath)}`, {
+            method: 'GET',
+        });
+        
+        if (!txtResponse.ok) {
+            const errorText = await txtResponse.text();
+            throw new Error(errorText || "Wystąpił błąd podczas pobierania raportu tekstowego.");
+        }
+        
+        const textData = await txtResponse.text();
+        
+        const textReportElement = document.getElementById('textReport');
+        textReportElement.innerText = textData;
+
     } catch (error) {
         resultElement.innerText = error.message;
     }
 });
+
 
 window.onload = loadFitnessFunctions;

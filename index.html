@@ -10,20 +10,23 @@
     <h1>Algorithm Solver</h1>
 
     <!-- Wybór funkcji celu -->
-    <div id="functionContainer" style="text-align: center; margin-bottom: 60px;">
-        <label for="functionSelect">Wybierz funkcję celu:</label>
-        <select id="functionSelect">
-            <option value="">-- Wybierz funkcję --</option>
-        </select>
-    </div>
-
-
-    <div id="algorithmContainer" style="text-align: center; margin-bottom: 60px;">
-        <label for="algorithmSelect">Wybierz algorytm:</label>
-        <select id="algorithmSelect">
-            <option value="">-- Wybierz algorytm --</option>
-        </select>
-    </div>
+     <div id="setupContainer">
+        <div id="functionContainer" style="text-align: center; margin-bottom: 60px;">
+            <label for="functionSelect">Wybierz funkcję celu:</label>
+            <select id="functionSelect">
+                <option value="">-- Wybierz funkcję --</option>
+            </select>
+        </div>
+    
+    
+        <div id="algorithmContainer" style="text-align: center; margin-bottom: 60px;">
+            <label for="algorithmSelect">Wybierz algorytm:</label>
+            <select id="algorithmSelect">
+                <option value="">-- Wybierz algorytm --</option>
+            </select>
+        </div>
+     </div>
+    
 
     <form id="solveForm">
         <div id="paramsContainer">
@@ -123,6 +126,8 @@
     </form>
 
     <div id="result"></div>
+
+    <div id="textReport"></div>
 
     <script src="script.js"></script>
 </body>
