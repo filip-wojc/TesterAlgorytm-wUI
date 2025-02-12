@@ -1,8 +1,15 @@
+const apiProtocol = "https";
+const apiPort = 7052;
+
+function getFileNameWithoutExtension(path) {
+    return path.substring(path.lastIndexOf('/')+1);
+}
+
 async function loadFitnessFunctions() {
     const functionSelect = document.getElementById('functionSelect');
 
     try {
-        const response = await fetch('http://localhost:5236/api/algorithm/fitness-functions');
+        const response = await fetch(`${apiProtocol}://localhost:${apiPort}/api/algorithm/fitness-functions`);
         if (!response.ok) throw new Error("Nie udało się pobrać funkcji celu.");
 
         const functions = await response.json();
@@ -20,7 +27,7 @@ async function loadFitnessFunctions() {
     const algorithmSelect = document.getElementById('algorithmSelect')
 
     try {
-        const response = await fetch('http://localhost:5236/api/algorithm/algorithms');
+        const response = await fetch(`${apiProtocol}://localhost:${apiPort}/api/algorithm/algorithms`);
         if (!response.ok) throw new Error("Nie udało się pobrać algorytmów.");
 
         const functions = await response.json();
@@ -55,15 +62,15 @@ document.getElementById('solveForm').addEventListener('submit', async function (
     const resultElement = document.getElementById('result');
     resultElement.innerText = ""; 
 
-    const selectedFunction = document.getElementById('functionSelect').value;
-    if (!selectedFunction) {
-        alert("Wybierz funkcję celu.");
+    const selectedFunctions = document.getElementById('functionSelect').selectedOptions;
+    if (!selectedFunctions || selectedFunctions.length <= 0) {
+        alert("Wybierz co najmniej jedną funkcję celu.");
         return;
     }
 
-    const selectedAlgorithm = document.getElementById('algorithmSelect').value;
-    if (!selectedAlgorithm) {
-        alert("Wybierz algorytm.");
+    const selectedAlgorithms = document.getElementById('algorithmSelect').selectedOptions;
+    if (!selectedAlgorithms || selectedAlgorithms.length <= 0) {
+        alert("Wybierz co najmniej jeden algorytm.");
         return;
     }
 
@@ -85,25 +92,35 @@ document.getElementById('solveForm').addEventListener('submit', async function (
             };
         });
 
+        const functionNames = [];
+        for(func of selectedFunctions) {
+            functionNames.push(func.label);
+        }
+
+        const algorithmNames = [];
+        for(algo of selectedAlgorithms) {
+            algorithmNames.push(algo.label);
+        }
+
         // Wywołanie rozwiązania algorytmu
-        const solveResponse = await fetch(`http://localhost:5236/api/algorithm/solve/${selectedFunction}/${selectedAlgorithm}`, {
+        const solveResponse = await fetch(`${apiProtocol}://localhost:${apiPort}/api/algorithm/solve2`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ paramsInfo }),
+            body: JSON.stringify({ paramsInfo,functionNames,algorithmNames })
         });
 
         if (!solveResponse.ok) {
-            const solveError = await solveResponse.json();
-            throw new Error(solveError.error || "Wystąpił błąd podczas rozwiązywania algorytmu.");
+            const errorText = await solveResponse.text();
+            throw new Error(errorText || "Wystąpił błąd podczas rozwiązywania algorytmu.");
         }
 
         const solveResult = await solveResponse.json();
         const filePath = solveResult.filePath;
 
         // Pobranie PDF
-        const pdfResponse = await fetch(`http://localhost:5236/api/algorithm/pdf-report?path=${encodeURIComponent(filePath)}`, {
+        const pdfResponse = await fetch(`${apiProtocol}://localhost:${apiPort}/api/algorithm/pdf-report?path=${encodeURIComponent(filePath)}`, {
             method: 'GET',
         });
 
@@ -115,13 +132,13 @@ document.getElementById('solveForm').addEventListener('submit', async function (
         const pdfBlob = await pdfResponse.blob();
         const downloadLink = document.createElement('a');
         downloadLink.href = URL.createObjectURL(pdfBlob);
-        downloadLink.download = filePath;
+        downloadLink.download = getFileNameWithoutExtension(filePath).substring("AlgorithmStates_".length).replace(".txt",".pdf");
         downloadLink.click();
 
         resultElement.innerText = "PDF został pobrany.";
 
         // Pobranie raportu tekstowego
-        const txtResponse = await fetch(`http://localhost:5236/api/algorithm/text-report?path=${encodeURIComponent(filePath)}`, {
+        const txtResponse = await fetch(`${apiProtocol}://localhost:${apiPort}/api/algorithm/text-report?path=${encodeURIComponent(filePath)}`, {
             method: 'GET',
         });
         
@@ -136,7 +153,7 @@ document.getElementById('solveForm').addEventListener('submit', async function (
         textReportElement.innerText = textData;
 
     } catch (error) {
-        resultElement.innerText = error.message;
+        resultElement.innerText = error;
     }
 });
 
